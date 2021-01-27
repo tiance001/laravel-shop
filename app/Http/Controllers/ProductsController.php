@@ -40,7 +40,7 @@ class ProductsController extends Controller
             }
         }
 
-        $products = $builder->paginate(4);
+        $products = $builder->paginate(16);
 
         return view('products.index', [
             'products' => $products,

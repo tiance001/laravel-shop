@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Ramsey\Uuid\Uuid;
 
 class Order extends Model
 {
@@ -30,7 +31,18 @@ class Order extends Model
         self::SHIP_STATUS_RECEIVED  => '已收货',
     ];
 
+    const TYPE_NORMAL = 'normal';
+    const TYPE_CROWDFUNDING = 'crowdfunding';
+
+    public static $typeMap = [
+        self::TYPE_NORMAL => '普通商品订单',
+        self::TYPE_CROWDFUNDING => '众筹商品订单',
+    ];
+
+
+
     protected $fillable = [
+        'type',
         'no',
         'address',
         'total_amount',
@@ -101,5 +113,21 @@ class Order extends Model
         \Log::warning('find order no failed');
 
         return false;
+    }
+
+    public static function getAvailableRefundNo()
+    {
+        do {
+            // Uuid类可以用来生成大概率不重复的字符串
+            $no = Uuid::uuid4()->getHex();
+            // 为了避免重复我们在生成之后在数据库中查询看看是否已经存在相同的退款订单号
+        } while (self::query()->where('refund_no', $no)->exists());
+
+        return $no;
+    }
+
+    public function couponCode()
+    {
+        return $this->belongsTo(CouponCode::class);
     }
 }
